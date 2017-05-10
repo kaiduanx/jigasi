@@ -17,6 +17,9 @@
  */
 package org.jitsi.jigasi;
 
+import java.util.Map;
+import java.util.HashMap;
+
 import org.jitsi.util.*;
 
 /**
@@ -43,6 +46,18 @@ public class CallContext
      * An account property to specify domain served by a sip or xmpp provider.
      */
     public static final String DOMAIN_BASE_ACCOUNT_PROP = "DOMAIN_BASE";
+
+    public static final String COMCAST_HEADER_CALL_ID = "Call-ID";
+
+    public static final String COMCAST_HEADER_ROUTING_ID = "From-Routing-Id";
+
+    public static final String COMCAST_HEADER_ROOT_NODE_ID = "Root-Node-Id";
+
+    public static final String COMCAST_HEADER_CHILD_NODE_ID = "Child-Node-Id";
+
+    public static final String COMCAST_HEADER_ROOM_TOKEN = "Room-Token";
+
+    public static final String COMCAST_HEADER_ROOM_TOKEN_EXPIRY_TIME = "Room-Token-Expiry-Time";
 
     /**
      * The room name of the MUC room that holds JVB conference call.
@@ -113,6 +128,8 @@ public class CallContext
      * in tests.
      */
     private String customCallResource = null;
+
+    private Map<String, String> comcastHeaders = new HashMap<String, String>();
 
     /**
      * Constructs new CallContext saving the timestamp at which it was created.
@@ -271,6 +288,19 @@ public class CallContext
     public long getTimestamp()
     {
         return timestamp;
+    }
+
+    public String getComcastHeader(String headerName)
+    {
+        return comcastHeaders.get(headerName);
+    }
+
+    public void setComcastHeader(String headerName, String headerValue)
+    {
+        if (headerName == null || headerValue == null) {
+            return;
+        }
+        comcastHeaders.put(headerName, headerValue);
     }
 
     /**

@@ -23,6 +23,7 @@ import net.java.sip.communicator.service.protocol.jabber.*;
 import net.java.sip.communicator.service.protocol.media.*;
 import net.java.sip.communicator.util.*;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jitsimeet.*;
+import net.java.sip.communicator.impl.protocol.jabber.extensions.MiscPacketExtension;
 import net.java.sip.communicator.util.Logger;
 import org.jitsi.jigasi.util.*;
 import org.jitsi.service.neomedia.*;
@@ -363,7 +364,8 @@ public class JvbConference
             return;
         }
 
-        String resourceIdentifier = getResourceIdentifier();
+        String resourceIdentifier = this.callContext.getComcastHeader(
+            CallContext.COMCAST_HEADER_ROUTING_ID);
 
         this.xmppProviderFactory
             = ProtocolProviderFactory.getProtocolProviderFactory(
@@ -572,14 +574,37 @@ public class JvbConference
             }*/
 
             String resourceIdentifier = getResourceIdentifier();
+            String routingId = this.callContext.getComcastHeader(
+                CallContext.COMCAST_HEADER_ROUTING_ID);
+            if ( !StringUtils.isNullOrEmpty(routingId) ) {
+                resourceIdentifier = routingId;
+            }
+            String childNodeId = this.callContext.getComcastHeader(
+                CallContext.COMCAST_HEADER_CHILD_NODE_ID);
+            String rootNodeId = this.callContext.getComcastHeader(
+                CallContext.COMCAST_HEADER_ROOT_NODE_ID);
+            String roomToken = this.callContext.getComcastHeader(
+                CallContext.COMCAST_HEADER_ROOM_TOKEN);
+            String roomTokenExpiryTime = this.callContext.getComcastHeader(
+                CallContext.COMCAST_HEADER_ROOM_TOKEN_EXPIRY_TIME);
+            String callId = this.callContext.getComcastHeader(
+                CallContext.COMCAST_HEADER_CALL_ID);
+            MiscPacketExtension misc = new MiscPacketExtension("connectPSTN",
+                callId,
+                rootNodeId,
+                childNodeId,
+                null,
+                routingId,
+                roomToken,
+                roomTokenExpiryTime);
 
             if (StringUtils.isNullOrEmpty(roomPassword))
             {
-                mucRoom.joinAs(resourceIdentifier);
+                mucRoom.joinAs(resourceIdentifier, null, misc);
             }
             else
             {
-                mucRoom.joinAs(resourceIdentifier, roomPassword.getBytes());
+                mucRoom.joinAs(resourceIdentifier, roomPassword.getBytes(), misc);
             }
 
             this.mucRoom = mucRoom;

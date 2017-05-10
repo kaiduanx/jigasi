@@ -267,6 +267,7 @@ public class GatewaySession
         }
 
         this.destination = callContext.getDestination();
+        this.destination = this.destination.split("@")[0];
 
         jvbConference = new JvbConference(this, callContext);
 
@@ -554,6 +555,19 @@ public class GatewaySession
                     .getAccountPropertyString(
                         CallContext.MUC_DOMAIN_PREFIX_PROP, "conference"));
 
+                // set all comcast headers
+                callContext.setComcastHeader(CallContext.COMCAST_HEADER_ROUTING_ID,
+                    data.get(CallContext.COMCAST_HEADER_ROUTING_ID));
+                callContext.setComcastHeader(CallContext.COMCAST_HEADER_ROOT_NODE_ID,
+                    data.get(CallContext.COMCAST_HEADER_ROOT_NODE_ID));
+                callContext.setComcastHeader(CallContext.COMCAST_HEADER_CHILD_NODE_ID,
+                    data.get(CallContext.COMCAST_HEADER_CHILD_NODE_ID));
+                callContext.setComcastHeader(CallContext.COMCAST_HEADER_ROOM_TOKEN,
+                    data.get(CallContext.COMCAST_HEADER_ROOM_TOKEN));
+                callContext.setComcastHeader(CallContext.COMCAST_HEADER_ROOM_TOKEN_EXPIRY_TIME,
+                    data.get(CallContext.COMCAST_HEADER_ROOM_TOKEN_EXPIRY_TIME));
+                callContext.setComcastHeader(CallContext.COMCAST_HEADER_CALL_ID,
+                    data.get(CallContext.COMCAST_HEADER_CALL_ID));
                 joinJvbConference(callContext);
             }
         }
