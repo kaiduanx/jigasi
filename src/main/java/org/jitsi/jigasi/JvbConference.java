@@ -360,7 +360,8 @@ public class JvbConference
     {
         if (started)
         {
-            logger.error("Already started !");
+            logger.audit("Code=INFO,traceId=" + callContext.getTraceId() +
+                ",message=Already started !");
             return;
         }
 
@@ -423,10 +424,13 @@ public class JvbConference
     {
         if (!started)
         {
-            logger.error("Already stopped !");
+            logger.audit("Code=INFO,traceId=" + callContext.getTraceId() +
+                ",message=Already stopped !");
             return;
         }
 
+        logger.audit("Code=INFO,traceId=" + callContext.getTraceId() +
+            ",message=Stopping the current JVB conference");
         started = false;
 
         JigasiBundleActivator.osgiContext.removeServiceListener(this);
@@ -451,9 +455,12 @@ public class JvbConference
         {
             xmppProvider.removeRegistrationStateChangeListener(this);
 
-            logger.info(
-                callContext.getCallResource()
-                    + " is removing account " + xmppAccount);
+            logger.audit("roomId=" + callContext.getRoomName().split("@")[0] +
+                ",Code=Info,routingId=" +
+                callContext.getComcastHeader(CallContext.COMCAST_HEADER_ROUTING_ID) +
+                ",traceId=" + callContext.getTraceId() +
+                ",event=JvbStop,message=Quits current JVB conference. Call resource is removed from xmpp account,call_resource=" +
+                callContext.getCallResource() + ",xmpp_account=" + xmppAccount);
 
             xmppProviderFactory.unloadAccount(xmppAccount);
 
@@ -525,14 +532,18 @@ public class JvbConference
         }
         else if (evt.getNewState() == RegistrationState.UNREGISTERED)
         {
-            logger.error("Unregistered XMPP on "
-                        + callContext.getCallResource());
+            logger.audit("Code=WARNING,traceId=" + callContext.getTraceId() +
+                ",message=Unregistered XMPP session, call_resource=" +
+                callContext.getCallResource());
         }
         else
         {
-            logger.info(
-                "XMPP (" + callContext.getCallResource()
-                         + "): " + evt.toString());
+            logger.audit("roomId=" + callContext.getRoomName().split("@")[0] +
+                ",Code=Info,routingId=" +
+                callContext.getComcastHeader(CallContext.COMCAST_HEADER_ROUTING_ID) +
+                ",traceId=" + callContext.getTraceId() +
+                ",event=RequestToRegistrationStateChanged,message=XMPP registration state changed,call_resource=" +
+                callContext.getCallResource() + ",event_details=" + evt.toString());
         }
     }
 
@@ -560,7 +571,12 @@ public class JvbConference
             String roomName = callContext.getRoomName();
             String roomPassword = callContext.getRoomPassword();
 
-            logger.info("Joining JVB conference room: " + roomName);
+            logger.audit("roomId=" + roomName.split("@")[0] +
+                ",routingId=" +
+                callContext.getComcastHeader(CallContext.COMCAST_HEADER_ROUTING_ID) +
+                ",Code=Info,traceId=" + callContext.getTraceId() +
+                ",event=RequestToJoinConferenceRoom,room_name=" + roomName +
+                ",message=Joining JVB conference room");
 
             ChatRoom mucRoom = muc.findRoom(roomName);
 
@@ -619,7 +635,8 @@ public class JvbConference
             }
             else
             {
-                logger.error("No display name to use...");
+                logger.audit("Code=INFO,traceId=" + callContext.getTraceId() +
+                    ",message=No display name to use...");
             }
 
             // Announce that we're connecting to JVB conference
@@ -637,7 +654,8 @@ public class JvbConference
         }
         catch (Exception e)
         {
-            logger.error(e, e);
+            logger.audit("Code=MAJOR,traceId=" + callContext.getTraceId() +
+                ",message=Stoping while join to conference room,exception=" + e);
 
             stop();
         }
@@ -660,7 +678,8 @@ public class JvbConference
     {
         if (jvbCall == null)
         {
-            logger.warn("Jvb call already disposed");
+            logger.audit("Code=INFO,traceId=" + callContext.getTraceId() +
+                ",message=Jvb call already disposed");
             return;
         }
 
@@ -676,8 +695,9 @@ public class JvbConference
 
     private void onJvbCallStarted()
     {
-        logger.info("JVB conference call IN_PROGRESS "
-            + callContext.getRoomName());
+        logger.audit("Code=INFO,traceId=" + callContext.getTraceId() +
+            ",message=starting JVB conference call is IN_PROGRESS,room_name=" +
+            callContext.getRoomName());
 
         OperationSetIncomingDTMF opSet
             = this.xmppProvider.getOperationSet(OperationSetIncomingDTMF.class);
@@ -688,7 +708,9 @@ public class JvbConference
 
         if (error != null)
         {
-            logger.error(error, error);
+            logger.audit("Code=MAJOR,traceId=" + callContext.getTraceId() +
+                ",message=Fail to Start JVB conference call,room_name=" +
+                callContext.getRoomName() + ",exception=" + error);
         }
     }
 
@@ -755,17 +777,19 @@ public class JvbConference
 
         ChatRoomMember member = evt.getChatRoomMember();
 
-        logger.info(
-            "Member left : " + member.getRole()
-                + " " + member.getContactAddress());
+        logger.audit("roomId=" + callContext.getRoomName().split("@")[0] + ",routingId=" +
+            callContext.getComcastHeader(CallContext.COMCAST_HEADER_ROUTING_ID) +
+            ",Code=Info,traceId=" + callContext.getTraceId() +
+            ",event=OnMemberLeft,member_role=" + member.getRole() +
+            ",member_contact_address=" + member.getContactAddress() +
+            ",message=Member left");
         // 2 members, us and the focus
         if (member.getContactAddress().equals(focusResourceAddr)
             || evt.getChatRoom().getMembersCount() == 2)
         {
-            logger.info(
-                member.getContactAddress().equals(focusResourceAddr) ?
-                    "Focus" : "Last participant"
-                + " left! - stopping");
+            logger.audit("Code=Info, traceId=" + callContext.getTraceId() +
+                (member.getContactAddress().equals(focusResourceAddr) ?
+                "Focus" : "Last participant") + " left! - stopping");
 
             stop();
         }
@@ -826,7 +850,8 @@ public class JvbConference
             CallPeer focus = event.getSourceCall().getCallPeers().next();
             if (focus == null || focus.getAddress() == null)
             {
-                logger.error("Failed to obtain focus peer address");
+                logger.audit("Code=WARNING,traceId=" + callContext.getTraceId() +
+                    ",message=Failed to obtain focus peer address");
             }
             else
             {
@@ -835,19 +860,24 @@ public class JvbConference
                     = fullAddress.substring(
                             fullAddress.indexOf("/") + 1);
 
-                logger.info("Got invite from " + focusResourceAddr);
+                logger.audit("roomId=" + callContext.getRoomName().split("@")[0] + ",routingId=" +
+                    callContext.getComcastHeader(CallContext.COMCAST_HEADER_ROUTING_ID) +
+                    ",Code=Info,traceId=" + callContext.getTraceId() + ",event=OnIncomingCall,from=" +
+                    focusResourceAddr + ",message=Got call invite");
             }
 
             if (jvbCall != null)
             {
-                logger.error(
-                    "JVB conference call already started " + hashCode());
+                logger.audit("Code=MINOR,traceId=" + callContext.getTraceId() +
+                    ",message=JVB conference call already started,hash_code=" +
+                    hashCode());
                 return;
             }
 
             if (!started || xmppProvider == null)
             {
-                logger.error("Instance disposed");
+                logger.audit("Code=INFO,traceId=" + callContext.getTraceId() +
+                    ",message=Instance disposed");
                 return;
             }
 
@@ -863,9 +893,9 @@ public class JvbConference
                 {
                     CallPeer peer = evt.getSourceCallPeer();
                     CallPeerState peerState = peer.getState();
-                    logger.info(
-                        callContext.getCallResource()
-                        + " JVB peer state: " + peerState);
+                    logger.audit("Code=INFO,traceId=" + callContext.getTraceId() +
+                        ",message=JVB peer state,peer_state=" + peerState +
+                        ",call_resource=" + callContext.getCallResource());
 
                     if (CallPeerState.CONNECTED.equals(peerState))
                     {
@@ -897,9 +927,9 @@ public class JvbConference
         {
             if (jvbCall != evt.getSourceCall())
             {
-                logger.error(
-                    "Call change event for different call ? "
-                        + evt.getSourceCall() + " : " + jvbCall);
+                logger.audit("Code=WARNING,traceId=" + callContext.getTraceId() +
+                    ",message=Call change event for different call ?,event_source_call=" +
+                    evt.getSourceCall() + ",jvb_call_details " + jvbCall);
                 return;
             }
 
@@ -1081,9 +1111,9 @@ public class JvbConference
 
                     if (willCauseTimeout)
                     {
-                        logger.error(
-                            "Did not received session invite within "
-                                + timeout + " ms");
+                        logger.audit("Code=MAJOR,traceId=" + callContext.getTraceId() +
+                            ",time_out=" + timeout +
+                            "ms,message=Did not received session invite within time,exception=Time out");
 
                         endReason
                             = "No invite from conference focus";
@@ -1095,6 +1125,8 @@ public class JvbConference
                 }
                 catch (InterruptedException e)
                 {
+                    logger.audit("Code=MINOR,traceId=" + callContext.getTraceId() +
+                        ",message=Jvb Invite Interrupted,exception=" + e);
                     Thread.currentThread().interrupt();
                 }
             }

@@ -129,6 +129,8 @@ public class CallContext
      */
     private String customCallResource = null;
 
+    private String traceId = null;
+
     private Map<String, String> comcastHeaders = new HashMap<String, String>();
 
     /**
@@ -301,6 +303,16 @@ public class CallContext
             return;
         }
         comcastHeaders.put(headerName, headerValue);
+    }
+
+    public String getTraceId()
+    {
+        return traceId;
+    }
+
+    public void setTraceId(String traceId)
+    {
+        this.traceId = traceId;
     }
 
     /**

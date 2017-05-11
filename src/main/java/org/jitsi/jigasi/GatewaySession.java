@@ -286,6 +286,11 @@ public class GatewaySession
         return jvbConference != null ? jvbConference.getRoomName() : null;
     }
 
+    public String getJvbRoomNameWithOutHostAddress()
+    {
+        return jvbConference != null ? jvbConference.getRoomName().split("@")[0] : null;
+    }
+
     /**
      * Returns <tt>ChatRoom</tt> that hosts JVB conference of this session
      * if we're already/still in this room or <tt>null</tt> otherwise.
@@ -466,8 +471,11 @@ public class GatewaySession
                 // just after the call has been created
                 call.setConference(jvbConferenceCall.getConference());
 
-                logger.info(
-                    "Created outgoing call to " + destination + " " + call);
+                logger.audit("roomId=" + getJvbRoomNameWithOutHostAddress() +
+                    ",routingId=" + callContext.getComcastHeader(CallContext.COMCAST_HEADER_ROUTING_ID) +
+                    ",Code=Info,traceId=" + callContext.getTraceId() +
+                    ",event=onConferenceCallStarted,message=Created outgoing call,to=" +
+                    destination + ",call_details=" + call);
 
                 this.call.addCallChangeListener(callStateListener);
 
@@ -513,9 +521,9 @@ public class GatewaySession
         }
         else
         {
-            logger.error(
-                "JVB conference unavailable. Failed to send: "
-                    + extension.toXML());
+            logger.audit("Code=MAJOR,traceId=" + callContext.getTraceId() +
+                ",message=JVB conference unavailable. Failed to send packet extension,packet_extension=" +
+                extension.toXML() + ",exception=conference is null");
         }
     }
 
@@ -566,8 +574,10 @@ public class GatewaySession
                     data.get(CallContext.COMCAST_HEADER_ROOM_TOKEN));
                 callContext.setComcastHeader(CallContext.COMCAST_HEADER_ROOM_TOKEN_EXPIRY_TIME,
                     data.get(CallContext.COMCAST_HEADER_ROOM_TOKEN_EXPIRY_TIME));
-                callContext.setComcastHeader(CallContext.COMCAST_HEADER_CALL_ID,
-                    data.get(CallContext.COMCAST_HEADER_CALL_ID));
+                String callId = data.get(CallContext.COMCAST_HEADER_CALL_ID);
+                callContext.setComcastHeader(CallContext.COMCAST_HEADER_CALL_ID, callId);
+                logger.info("Set trace id for incoming SIP call " + callId);
+                callContext.setTraceId(callId);
                 joinJvbConference(callContext);
             }
         }
@@ -706,7 +716,8 @@ public class GatewaySession
                     }
                     catch (OperationFailedException ofe)
                     {
-                        logger.info("Failed to forward a DTMF tone: " + ofe);
+                        logger.audit("Code=MINOR,traceId=" + callContext.getTraceId() +
+                            ",message=Failed to forward a DTMF tone,exception=" + ofe);
                     }
                 }
                 else
@@ -780,8 +791,11 @@ public class GatewaySession
                 //jvbConference.setPresenceStatus(
                   //  SipGatewayExtension.STATE_IN_PROGRESS);
 
-                logger.info("SIP call format used: "
-                                + Util.getFirstPeerMediaFormat(call));
+                logger.audit("roomId=" + getJvbRoomNameWithOutHostAddress() +
+                    ",routingId=" + callContext.getComcastHeader(CallContext.COMCAST_HEADER_ROUTING_ID) +
+                    ",Code=Info,traceId=" + callContext.getTraceId() +
+                    ",event=OnHandleCallState,message=SIP call format details,format=" +
+                    Util.getFirstPeerMediaFormat(call));
             }
             else if(call.getCallState() == CallState.CALL_ENDED)
             {
@@ -844,8 +858,11 @@ public class GatewaySession
             CallPeerState callPeerState = (CallPeerState)evt.getNewValue();
             String stateString = callPeerState.getStateString();
 
-            logger.info(callContext.getCallResource()
-                + " SIP peer state: " + stateString);
+            logger.audit("roomId=" + getJvbRoomNameWithOutHostAddress() +
+                ",routingId=" + callContext.getComcastHeader(CallContext.COMCAST_HEADER_ROUTING_ID) +
+                ",Code=Info,traceId=" + callContext.getTraceId() +
+                ",event=OnPeerStateChange,message=peer state changed,call_resource=" +
+                callContext.getCallResource() + ",SIP_peer_state=" + stateString);
 
             if (jvbConference != null)
                 jvbConference.setPresenceStatus(stateString);
