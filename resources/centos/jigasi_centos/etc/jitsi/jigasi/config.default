@@ -1,0 +1,6 @@
+# Jitsi Conference JIGASI settings
+JIGASI_HOST=localhost
+JIGASI_HOSTNAME=example.com
+JIGASI_SECRET=sipcall
+JIGASI_PORT=5347
+JIGASI_SUBDOMAIN=jigasi_fqdn

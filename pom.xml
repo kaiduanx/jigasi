@@ -18,7 +18,7 @@
   <url>https://github.com/jitsi/jigasi</url>
 
   <properties>
-    <assembly.skipAssembly>true</assembly.skipAssembly>
+    <assembly.skipAssembly>false</assembly.skipAssembly>
   </properties>
 
   <dependencies>

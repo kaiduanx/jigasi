@@ -1,0 +1,117 @@
+#Sample config with one XMPP and one SIP account configured
+# Replace {sip-pass-hash} with SIP user password hash
+# as well as other account properties
+
+# Name of default JVB room that will be joined if no special header is included
+# in SIP invite
+org.jitsi.jigasi.DEFAULT_JVB_ROOM_NAME=RTC2dot0
+
+net.java.sip.communicator.impl.protocol.SingleCallInProgressPolicy.enabled=false
+
+# Adjust opus encoder complexity
+net.java.sip.communicator.impl.neomedia.codec.audio.opus.encoder.COMPLEXITY=10
+net.java.sip.communicator.impl.neomedia.codec.audio.opus.encoder.FEC=false
+
+#Enable/Disable plus for headers
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.PLUS_DISABLED=false
+
+#Enable/Disable plus for headers
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.CALL_END_DELAY=60000
+
+#Enable/Disable Certificate verification
+org.jitsi.impl.neomedia.transform.dtls.DtlsControlImpl.verifyAndValidateCertificate=false
+
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647=acc1403273890647
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.DOMAIN=_jigasi1@st-rtcsip-emhr-1-vip.ssg.comcast.net
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ACCOUNT_UID=sip\:+12676072919@
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ACCOUNT_ADDRESS=ims.comcast.net
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.DEFAULT_ENCRYPTION=true
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.DEFAULT_SIPZRTP_ATTRIBUTE=true
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ENCRYPTION_PROTOCOL.ZRTP=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ENCRYPTION_PROTOCOL_STATUS.ZRTP=true
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.FORCE_P2P_MODE=true
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.PASSWORD=UG9zdENhc3Qw
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.PROTOCOL_NAME=SIP
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.PREFERRED_TRANSPORT=UDP
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.PROXY_AUTO_CONFIG=false
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.PROXY_PORT=5060
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.USER_ID=+12676072919
+#net.java.sip.communicator.impl.protocol.sip.acc1403273890647.AUTHORIZATION_NAME=2676072919@ims.comcast.net
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.1.Name=P-Comcast-Destination
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.1.Value=primary
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.1.Method=INVITE
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.2.Name=From
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.2.Value="${from.userID}" <sip:${from.userID}${domain}>;tag=${tag}
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.2.Method=INVITE
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.4.Name=Route
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.4.Value=<sip:${to.userID}@${lookup.srv}:5060;user\=phone;lr;orig>
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.4.Method=INVITE
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.5.Name=To
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.5.Value=<${to.address};user\=phone>
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.5.Method=INVITE
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.6.Name=Session-Expires
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.6.Value=1800;refresher=uas
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.6.Method=INVITE
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.7.Name=Supported
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.7.Value=replaces,timer,norefersub
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.7.Method=INVITE
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.8.Name=Allow
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.8.Value=INVITE,ACK,BYE,CANCEL,UPDATE,SUBSCRIBE,NOTIFY,REFER,MESSAGE,OPTIONS
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.8.Method=INVITE
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.9.Name=Min-SE
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.9.Value=90
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.9.Method=INVITE
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.10.Name=Contact
+#net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.10.Value=<${from.ip}:5060;transport\=udp>;user\=phone
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.10.Value=<${from.ip};transport\=udp>;user\=phone
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.10.Method=INVITE
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.11.Name=P-Asserted-Identity
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.11.Value=<tel:${userID}>
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.11.Method=INVITE
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.12.Name=P-Asserted-Identity
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.12.Value=<${from.fqdn};user\=phone>
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.ConfigHeader.12.Method=INVITE
+
+## To remove a codec from SDP, change the value to 0.
+## Increasing codec values means increasing priority of the codec in SDP.
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.PCMU/8000=650
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.G722/8000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.GSM/8000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.H263-1998/90000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.H264/90000=0
+#net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.PCMA/8000=600
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.PCMA/8000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.SILK/12000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.SILK/16000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.SILK/24000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.SILK/8000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.VP8/90000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.iLBC/8000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.opus/48000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.red/90000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.speex/16000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.speex/32000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.speex/8000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.telephone-event/8000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.Encodings.ulpfec/90000=0
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.OVERRIDE_ENCODINGS=false
+net.java.sip.communicator.impl.protocol.sip.acc1403273890647.SAVP_OPTION=0
+net.java.sip.communicator.plugin.reconnectplugin.ATLEAST_ONE_SUCCESSFUL_CONNECTION.SIP\:+12676072919@=true
+
+# we can use the prefix org.jitsi.jigasi.xmpp.acc to override any of the
+# properties that will be used for creating xmpp account for communication
+# the following two props assume we are using jigasi on the same machine as
+# the xmpp server
+org.jitsi.jigasi.xmpp.acc.IS_SERVER_OVERRIDDEN=true
+org.jitsi.jigasi.xmpp.acc.SERVER_ADDRESS=127.0.0.1
+# If you want jigasi to perform authenticated login instead of anonymous login
+# to the XMPP server, you can set the following properties.
+# org.jitsi.jigasi.xmpp.acc.USER_ID=SOME_USER@SOME_DOMAIN
+# org.jitsi.jigasi.xmpp.acc.PASS=SOME_PASS
+# org.jitsi.jigasi.xmpp.acc.ANONYMOUS_AUTH=true
+org.jitsi.jigasi.xmpp.acc.PASS=xrtc_sp00f_s1p
+org.jitsi.jigasi.xmpp.acc.ANONYMOUS_AUTH=false
+org.jitsi.jigasi.xmpp.acc.ALLOW_NON_SECURE=true
+
+# If you want to use the SIP user part of the incoming/outgoing call SIP URI
+# you can set the following property to true.
