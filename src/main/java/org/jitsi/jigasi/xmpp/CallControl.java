@@ -19,10 +19,19 @@ package org.jitsi.jigasi.xmpp;
 
 import net.java.sip.communicator.impl.protocol.jabber.extensions.rayo.RayoIqProvider.*;
 import net.java.sip.communicator.util.*;
+import net.java.sip.communicator.service.protocol.*;
 import org.jitsi.jigasi.*;
 import org.jitsi.service.configuration.*;
 import org.jivesoftware.smack.packet.*;
 import org.jivesoftware.smack.util.*;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Attr;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import java.io.StringReader;
 
 /**
  *  Implementation of call control that is capable of utilizing Rayo
@@ -127,9 +136,12 @@ public class CallControl
             {
                 DialIq dialIq = (DialIq) iq;
 
-                String from = dialIq.getSource();
+                logger.info("DialIQ: " + iq.toXML());
+                String from = dialIq.getSource().split("@")[0];
                 String to = dialIq.getDestination();
+                logger.info("Call context source: " + from + ", destination: " + to);
                 ctx.setDestination(to);
+                ctx.setSource(from);
 
                 String roomName = dialIq.getHeader(ROOM_NAME_HEADER);
                 ctx.setRoomName(roomName);
@@ -139,13 +151,18 @@ public class CallControl
                 if (roomName == null)
                     throw new RuntimeException("No JvbRoomName header found");
 
-                logger.info(
-                    "Got dial request " + from + " -> " + to
-                        + " room: " + roomName);
-
+                // Apply comcast processing, must be done BEFORE ctx.getCallResource
+                // because call resource may be reset in comcastProcessing.
+                comcastProcess(dialIq, ctx);
                 String callResource = ctx.getCallResource();
 
                 gateway.createOutgoingCall(ctx);
+
+                logger.audit("roomId=" + roomName.split("@")[0] +
+                    ",routingId=" + ctx.getComcastHeader(CallContext.COMCAST_HEADER_ROUTING_ID) +
+                    ",traceId=" + ctx.getTraceId() +
+                    ",Code=Info,event=RequestToDial,message=Got dial request,from=" + from +
+                    ",to=" + to + ",room_name=" + roomName);
 
                 callResource = "xmpp:" + callResource;
 
@@ -155,7 +172,9 @@ public class CallControl
             {
                 HangUp hangUp = (HangUp) iq;
 
-                String callResource = hangUp.getTo();
+                String to = hangUp.getTo();
+                String callResource = getCallResource(to);
+                logger.info("Getting session with callResource: " + callResource);
 
                 GatewaySession session = gateway.getSession(callResource);
 
@@ -177,5 +196,96 @@ public class CallControl
             logger.error(e, e);
             throw e;
         }
+    }
+
+    private void comcastProcess(DialIq iq, CallContext callContext)
+    {
+        if (iq == null || callContext == null)
+        {
+            return;
+        }
+
+        String from = iq.getSource().split("@")[0];
+        NodeList eventList;
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            InputSource inputSource = new InputSource(new StringReader(iq.toXML()));
+            org.w3c.dom.Document document = builder.parse(inputSource);
+            eventList = document.getElementsByTagName("data");
+        }
+        catch (Exception e) 
+        {
+            return;
+        }
+        String toRoutingId = "";
+        String roomToken = "";
+        String roomTokenExpiryTime = "";
+        String traceId = "";
+
+        if (eventList != null && eventList.getLength() > 0)
+        {
+            NamedNodeMap nodeMap = eventList.item(0).getAttributes();
+            for (int i = 0; i < nodeMap.getLength(); i++)
+            {
+                Attr attr = (Attr) nodeMap.item(i);
+                String attrName = attr.getNodeName();
+                if (attrName.equals("traceid"))
+                    traceId = attr.getNodeValue();
+                else if (attrName.equals("toroutingid"))
+                    toRoutingId = attr.getNodeValue();
+                else if (attrName.equals("roomtoken"))
+                    roomToken = attr.getNodeValue();
+                else if (attrName.equals("roomtokenexpirytime"))
+                    roomTokenExpiryTime = attr.getNodeValue();
+            }
+        }
+
+        if (traceId == null | traceId == "")
+            traceId = "-1";
+        gateway.getSipProvider().getAccountID().putAccountProperty("traceId", traceId);
+
+        String accountUID = gateway.getSipProvider().getAccountID()
+            .getAccountPropertyString(ProtocolProviderFactory.ACCOUNT_UID);
+
+        gateway.getSipProvider().getAccountID().putAccountProperty(
+            ProtocolProviderFactory.ACCOUNT_UID, accountUID.replace(
+                accountUID.substring(0, accountUID.indexOf("@")), from));
+        gateway.getSipProvider().getAccountID().putAccountProperty(
+            ProtocolProviderFactory.USER_ID, accountUID.replace(
+                accountUID.substring(0, accountUID.indexOf("@")), from));
+        gateway.getSipProvider().getAccountID().putAccountProperty(
+            ProtocolProviderFactory.AUTHORIZATION_NAME, accountUID.replace(
+                accountUID.substring(0, accountUID.indexOf("@")),
+                from.substring(from.length() - 10))); // Why 10 ?
+        //Dynamic owner/creator
+        gateway.getSipProvider().getAccountID().putAccountProperty("fromNumber", from);
+        gateway.getSipProvider().getAccountID().putAccountProperty("toroutingid", toRoutingId);
+        gateway.getSipProvider().getAccountID().putAccountProperty("roomToken", roomToken);
+        gateway.getSipProvider().getAccountID().putAccountProperty("roomTokenExpiryTime", roomTokenExpiryTime);
+
+        callContext.setTraceId(traceId);
+        callContext.setComcastHeader(CallContext.COMCAST_HEADER_ROOM_TOKEN, roomToken);
+        callContext.setComcastHeader(CallContext.COMCAST_HEADER_ROOM_TOKEN_EXPIRY_TIME, roomTokenExpiryTime);
+        callContext.setComcastHeader(CallContext.COMCAST_HEADER_ROUTING_ID, toRoutingId);
+        if (toRoutingId != null && !toRoutingId.equals(""))
+        {
+            callContext.setCustomCallResource(toRoutingId);
+        }
+    }
+
+    // to looks like
+    // 139e10ed-397a-11e7-ad69-fa163e8ed101@st-callcontrol-wbrn-006.poc.sys.comcast.net/+1xxx-xxxxxxx@iristest.comcast.com
+    private String getCallResource(String to) 
+    {
+        if (to == null) 
+        {
+            return "";
+        }
+        if (to.contains("/"))
+        {
+            return to.split("/")[1];
+        }
+        return "";
     }
 }

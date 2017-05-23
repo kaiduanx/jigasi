@@ -463,7 +463,8 @@ public class GatewaySession
             });
             try
             {
-                this.call = tele.createCall(destination);
+                logger.info("createCall to destination: " + callContext.getDestination() + ", source: " + callContext.getSource());
+                this.call = tele.createCall(callContext.getDestination(), callContext.getSource());
 
                 peerStateListener = new CallPeerListener(this.call);
 

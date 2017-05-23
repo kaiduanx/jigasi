@@ -105,6 +105,11 @@ public class CallContext
     private String destination;
 
     /**
+     * The source address to call for outgoing calls.
+     */
+    private String source;
+
+    /**
      * Muc address prefix, default is 'conference'.
      * Used when parsing subdomain out of the full
      * room name 'roomName@conference.subdomain.domain'.
@@ -313,6 +318,24 @@ public class CallContext
     public void setTraceId(String traceId)
     {
         this.traceId = traceId;
+    }
+    
+    /**
+     * The source address to call for outgoing calls.
+     * @return the source address to call for outgoing calls.
+     */
+    public String getSource()
+    {
+        return source;
+    }
+
+    /**
+     * Sets source address to call for outgoing calls.
+     * @param source the address to use for outgoing calls.
+     */
+    public void setSource(String source)
+    {
+        this.source = source;
     }
 
     /**

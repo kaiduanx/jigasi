@@ -227,6 +227,7 @@ public class SipGateway
     @Override
     public void onJvbRoomJoined(GatewaySession source)
     {
+        logger.info("Add GatewaySession with callResource:" + source.getCallContext().getCallResource());
         sessions.put(source.getCallContext(), source);
 
         fireGatewaySessionAdded(source);
