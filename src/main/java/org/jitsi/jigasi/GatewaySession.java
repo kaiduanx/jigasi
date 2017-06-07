@@ -71,6 +71,15 @@ public class GatewaySession
     private static final String JITSI_MEET_ROOM_HEADER_PROPERTY
         = "JITSI_MEET_ROOM_HEADER_NAME";
 
+    private static final String COMCAST_DIRECTION_HEADER_NAME
+        = "Comcast-Direction";
+
+    private static final String COMCAST_DIRECTION_OUTGOING
+        = "outgoing";
+
+    private static final String COMCAST_APP_DOMAIN_HEADER_NAME
+        = "Comcast-App-Domain";
+
     /**
      * The name of the header to search in the INVITE headers for base domain
      * to be used to extract the subdomain from the roomname in order
@@ -450,6 +459,25 @@ public class GatewaySession
                                     JITSI_MEET_ROOM_HEADER_PROPERTY,
                                     "Jitsi-Conference-Room"));
                         call.setData("EXTRA_HEADER_VALUE.1", roomName);
+                        call.setData("EXTRA_HEADER_NAME.2",
+                            COMCAST_DIRECTION_HEADER_NAME);
+                        call.setData("EXTRA_HEADER_VALUE.2",
+                            COMCAST_DIRECTION_OUTGOING);
+                        String toRoutingId = callContext.getComcastHeader(
+                            CallContext.COMCAST_HEADER_ROUTING_ID);
+                        // toRoutingId: toroutingid=+15199543186@iristest.comcast.com
+                        logger.info("Routing id: " + toRoutingId);
+                        if (toRoutingId != null && toRoutingId.split("@").length > 1)
+                        {
+                            call.setData("EXTRA_HEADER_NAME.3",
+                                COMCAST_APP_DOMAIN_HEADER_NAME);
+                            //call.setData("EXTRA_HEADER_VALUE.3",
+                            //    toRoutingId.split("@")[1]);
+                            String accountAddress = sipGateway.getSipProvider().getAccountID()
+                                .getAccountPropertyString(ProtocolProviderFactory.ACCOUNT_ADDRESS);
+                            logger.info("AccountAddress: " + accountAddress);
+                            call.setData("EXTRA_HEADER_VALUE.3", accountAddress);
+                        }
                     }
 
                     tele.removeCallListener(this);
